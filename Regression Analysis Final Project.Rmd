@@ -1,0 +1,589 @@
+---
+title: "Regression Analysis Final Project"
+author: "Rakshit Chandna"
+date: "2023-06-02"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## *Introduction* 
+
+Life expectancy is one of the most used measures of overall health of a population. It is expressed as either the number of years of a newborn baby is expected to live, or the expected years of life remaining for a person at a given age and is estimated from the death rates in a population. Life expectancy is a measure that is often used to gauge the overall health of a community. Life expectancy at birth measures health status across all age groups. Shifts in life expectancy are often used to describe trends in mortality. It was found that the effect of immunization and human development index was not considered in the past. Hence, considering the data of life  expectancy for the year 2014 for all the countries.
+
+This project will focus on various factors such as immunization, mortality, economic, social and other health related factors as well. These factors in corresponding to the  countries observations will help us analyze the life expectancy rates globally. The predicting variables can be divided into several broad categories: Immunization related factors, Mortality factors, Economical factors, and social factors.
+
+### Dataset source 
+
+The data in the project has been used from Kaggle.com datasets which has been provided below. https://www.kaggle.com/datasets/kumarajarshi/life-expectancy-who?resource=download
+
+## Descriptive features of the dataset:
+
+The dataset has 2939 observations and 22 columns, and since the given dataset is a big one, we will only consider the below mentioned variables for our analysis. 
+
+* **Country**: The name of the country which is being analyzed
+* **Life expectancy**: The average life expectancy of an average citizen from the country in question
+* **Alcohol**: The average alcohol consumption by an average citizen in liters per year
+* **Polio**: Percentage of Polio immunization coverage among 1-year-olds
+* **Percentage expenditure**: General government expenditure on health as a percentage of total government expenditure
+* **BMI**: Average Body Mass Index of entire population
+* **GDP**: Gross Domestic Product per capita (in USD)
+* **Schooling**: Number of years of Schooling(years)
+
+### Necessary Libraries
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+library(readr)
+library(stats)
+library(dplyr)
+library(tidyr)
+library(car)
+library(stats)
+library(GGally)
+```
+
+
+```{r message=FALSE, include=FALSE}
+getwd()
+```
+
+
+```{r include=FALSE}
+setwd("C:/Users/Rakshit Chandna/OneDrive/Desktop/DataMain/Regression analysis")
+```
+
+
+## Importing the Dataset
+
+```{r echo=TRUE}
+LED <- read.csv("LED.csv")
+head(LED)
+
+```
+
+* Here we have imported the data set. We will now perform some data processing to work and prepare the data so we can work towards the aim. 
+
+### Data pre-processing
+
+```{r echo=TRUE}
+dfled <- data.frame(LED)
+
+LL <- dfled[dfled$Year == 2014,]
+```
+
+* Here we have converted the data set into a data frame and have subsetted the data set to the year of 2014, as we will be performing the analysis of the data from 2014. 
+
+
+### Changing Column names
+```{r echo=TRUE, warning=FALSE}
+FLED <- subset(LL,, select = c("Country","Life.expectancy","Alcohol","Polio","percentage.expenditure","BMI","GDP","Schooling"))
+colnames(FLED)[c(2:8)] <- c("Y","X1","X2","X3","X4","X5","X6")
+head(FLED)
+```
+
+* As we will be focusing on specific varaiables, we have subsetted the data set to meet those certain requirements. 
+* We have also, changed the names of the data set for the ease of calculations. Y- Life.expectancy., X1= Alcohol, X2 = Polio, X3 = percentage.expenditure, X4 = BMI, X5= GDP, X6 = Schooling.
+
+
+### Imputing "NA" values with "median"
+
+```{r echo=TRUE}
+FLED<- FLED %>% mutate(across(X1, ~replace_na(., median(., na.rm=TRUE))))
+which(is.na(FLED$X1))
+
+which(is.na(FLED$X2))
+
+which(is.na(FLED$X3))
+
+which(is.na(FLED$X4))
+FLED<- FLED %>% mutate(across(X4, ~replace_na(., median(., na.rm=TRUE))))
+which(is.na(FLED$X4))
+
+which(is.na(FLED$X5))
+FLED<- FLED %>% mutate(across(X5, ~replace_na(., median(., na.rm=TRUE))))
+which(is.na(FLED$X5))
+
+which(is.na(FLED$X6))
+FLED<- FLED %>% mutate(across(X6, ~replace_na(., median(., na.rm=TRUE))))
+which(is.na(FLED$X6))
+```
+
+* The data frame had certain NA values. Which we have replaced with their median values. 
+
+* We found that the predictors X1, X4, X5, X6 had missing values and we imputed them with their respective median values.
+
+
+### Variables correlation 
+```{r Scatterplot, echo=TRUE}
+plot(~Y+X1+X2+X3+X4+X5+X6,data=FLED,main="Scatterplot")
+
+```
+
+```{r correlation, echo=TRUE}
+cor(FLED$Y,FLED$X1)
+cor(FLED$Y,FLED$X2)
+cor(FLED$Y,FLED$X3)
+cor(FLED$Y,FLED$X4)
+cor(FLED$Y,FLED$X5)
+cor(FLED$Y,FLED$X6)
+```
+
+* We plot the scatterplot for the variables. 
+
+* We also find the correlation values and found that X6 has a very strong correlation of 0.7722 with dependent variable Y. 
+
+
+### Basic Multiple Linear Regression Model
+
+```{r echo=TRUE}
+model<-lm(Y~X1+X2+X3+X4+X5+X6,FLED)
+summary(model)
+```
+
+Model Equation: $\hat {Y}= (4.044e+01) + (1.954e-01) \hspace{0.1 cm} X1 + (7.225e-02) \hspace{0.1 cm} X2 + (8.467e-05) \hspace{0.1 cm} X3 + (5.682e-02) \hspace{0.1 cm} X4 + (4.946e-05) \hspace{0.1 cm} X5 + (1.666e+00) \hspace{0.1 cm} X6$  
+
+
+* From the summary we can see that we have R-squared value of 0.6659 meaning, 66.59 percent of the variability in the data can be explained from the model. 
+
+* The Adjusted R- squared is 0.6545. Predictors X2, X4, and X6 are significant 
+
+* The fitted model is as follows E(y)̂= 0
+
+
+### Residual Analysis
+
+```{r echo=TRUE}
+par(mfrow=c(2,2))
+plot(model)
+```
+
+* Concluding whether any assumptions have been violated or not just by the plots is difficult hence we will conduct certain test for evidence.
+
+### *1 Non-constant error variance test*
+
+```{r echo=TRUE}
+plot(model$fitted.values, model$residuals)
+ncvTest(model)
+```
+
+* Here,H0: Errors have constant variance and HA: Errors have a non-constant variance
+
+* The  p value = 0.081741, which is greater than 0.05 so we fail to reject the H0 and can say we have enough evidence to say that the constant error variance assumption is not
+violated.
+
+### *2 Test for Normally Distributed Errors*
+
+```{r echo=TRUE}
+shapiro.test(model$residuals)
+
+```
+
+* Here, #H0: Errors are normally distributed and HA: Errors are not normally distributed.
+
+* We have the p-value = 0.002191, which is less than 0.05, so we have sufficient evidence to reject the H0. Hence, we can say that the data is normally distributed. That is the normality assumption is violated. 
+
+### *3 Test for Autocorrelated Errors*
+
+```{r echo=TRUE}
+acf(model$residuals)
+```
+
+
+```{r echo=TRUE}
+durbinWatsonTest(model)
+```
+
+* Here, H0: Errors are uncorrelated and HA: Errors are correlated
+
+* We have the p-value = 0.408, which is greater than 0.05 hence we do not reject the null 
+#hypothesis. This indicates that the uncorrelated error assumption is not violated.
+
+
+### *4 Test for Linearity*
+```{r echo=TRUE}
+crPlots(model)
+```
+
+* One of the key assumptions of multiple linear regression is that there exists a linear relationship between each predictor variable and the response variable.If this assumption is violated, then the results of the regression model can be unreliable. We will check this assumption by creating a partial residual plot, which displays the residuals of one predictor variable against the response variable. 
+
+* The blue line shows the expected residuals if the relationship between the predictor and response variable was linear. The pink line shows the actual residuals.If the two lines are significantly different, then this is evidence of a nonlinear relationship.The predictor variables X1,X2 and X5 are fairly non-linear.
+
+```{r echo=TRUE}
+head(FLED)
+```
+### *5 Test for Multi-collinearity* 
+
+```{r echo=TRUE}
+ggpairs(data = FLED, columns = c(3:8))
+
+```
+* From the matrix we can see that there exists strong correlation between the independent variables. This is an indication of multi-collinearity and hence the multi- collinearity assumption has been violated.
+
+
+```{r echo=TRUE}
+vif(model)
+```
+
+* The predictor variables X1 is significant in multicollinearity. X1 is strongly correlated since the VIF(variance Inflation Factor) value is greater than 10. we will do a log transformation to check if there will be an improvement in the model.
+
+
+## Model Transformation
+
+- We will now perform few transformation on our basic model to select the best model possible. The types of transformations would be:
+
+## Log Traansformation
+
+```{r echo=TRUE}
+modellog<-lm(log(Y)~X1+X2+X3+X4+X5+X6,FLED)
+summary(modellog)
+```
+Model Equation: $\hat {Y}= (3.810e+00) + (2.516e-03) \hspace{0.1 cm} X1 + (1.126e-03) \hspace{0.1 cm} X2 + (3.987e-07) \hspace{0.1 cm} X3 + (8.758e-04) \hspace{0.1 cm} X4 + (7.336e-07) \hspace{0.1 cm} X5 + (2.372e-02) \hspace{0.1 cm} X6$  
+
+* WE performed a log transformation to check if there is any improvement in the model. 
+
+* We can see that the R-Squared value is 0.6455,meaning 64.55% of the variability in the data is explained by the model, the adjusted R-Squared value is 0.6334. Only the predictors X2,X4 and X6 are significant.
+
+### *Residual Analysis*
+
+```{r echo=TRUE}
+par(mfrow=c(2,2))
+plot(modellog)
+```
+### *1 Non-constant error variance test* 
+
+```{r echo=TRUE}
+plot(modellog$fitted.values, modellog$residuals)
+```
+
+
+```{r echo=TRUE}
+ncvTest(modellog)
+```
+
+* Here, $H0$: Errors have constant variance and $HA$: Errors have a non-constant variance. 
+
+* we can observe the P value = 0.0014739, which is less than $0.05$ hence we reject the null hypothesis. This indicates that the constant error variance assumption is violated.
+
+### *2 Test for Normally Distributed Errors*
+
+```{r echo=TRUE}
+shapiro.test(modellog$residuals)
+```
+
+* Here, $H0$: Errors are normally distributed and $HA$: Errors are not normally distributed.
+
+* Here, p value can be observed is less than $0.05$, hence we have enough evidence to reject the $H0$. This indicates that the normality error assumption is violated.
+
+
+### *3 Test for Autocorrelated Errors*
+
+```{r echo=TRUE}
+acf(modellog$residuals)
+```
+
+```{r echo=TRUE}
+durbinWatsonTest(modellog)
+```
+
+
+* Here, $H0$: Errors are uncorrelated and $HA$: Errors are correlated.
+
+* The P value is greater than 0.05, hence we do not have enough evidence to reject the $H0$, this indicates that the uncorrelated error assumption is not violated.
+
+### *4 Test for Linearity* 
+
+  One of the key assumptions of multiple linear regression is that there exists a linear relationship between each predictor variable and the response variable.If this assumption is violated, then the results of the regression model can be unreliable. We will check this assumption by creating a partial residual plot, which displays the residuals of one predictor variable against the response variable. 
+  
+```{r echo=TRUE}
+crPlots(modellog)
+```
+  
+* The blue line shows the expected residuals if the relationship between the predictor and response variable was linear. The pink line shows the actual residuals.If the two lines are significantly different, then this is evidence of a nonlinear relationship.The predictor variables X1,X2 and X5 are fairly non-linear.
+
+
+## Square Root Transformation
+
+```{r echo=TRUE}
+
+modelsqrt <- lm(sqrt(Y)~X1+X2+X3+X4+X5+X6,FLED)
+
+summary(modelsqrt)
+```
+
+Model Equation: $\hat {Y}= (6.569e+00) + (1.108e-02) \hspace{0.1 cm} X1 + (4.504e-03) \hspace{0.1 cm} X2 + (3.320e-06) \hspace{0.1 cm} X3 + (3.526e-03) \hspace{0.1 cm} X4 + (3.012e-06) \hspace{0.1 cm} X5 + (9.927e-02) \hspace{0.1 cm} X6$  
+
+
+* WE performed a Square Root transformation to check if there is any improvement in the model. 
+
+* We can see that the R-Squared value is 0.6567,meaning 65.7% of the variability in the data is explained by the model, the adjusted R-Squared value is 0.645. Only the predictors X2,X4 and X6 are significant.
+
+
+### Residual Analysis
+
+```{r echo=TRUE}
+par(mfrow=c(2,2))
+plot(modelsqrt)
+```
+
+### 1 Non-constant error variance test
+
+
+```{r echo=TRUE}
+plot(modelsqrt$fitted.values, modelsqrt$residuals)
+```
+
+
+
+```{r echo=TRUE}
+ncvTest(modelsqrt)
+```
+* Here, $H0$: Errors have constant variance and $HA$: Errors have a non-constant variance. 
+
+* we can observe the P value = 0.013277, which is less than $0.05$ hence we reject the null hypothesis. This indicates that the constant error variance assumption is violated.
+
+
+
+### 2 Test for Normally Distributed Errors 
+
+```{r echo=TRUE}
+shapiro.test(modelsqrt$residuals)
+```
+
+* Here, $H0$: Errors are normally distributed and $HA$: Errors are not normally distributed.
+
+* Here, p value can be observed is 0.0001273 which is less than $0.05$, hence we have enough evidence to reject the $H0$. This indicates that the normality error assumption is violated.
+
+
+###3 Test for Autocorrelated Errors
+
+```{r echo=TRUE}
+acf(modelsqrt$residuals)
+```
+
+
+```{r echo=TRUE}
+durbinWatsonTest(modelsqrt)
+#The p-value of  0.45 is less than 0.05 hence we reject the null 
+#hypothesis. This indicates that the uncorrelated error assumption is 
+#violated.
+```
+
+* Here, $H0$: Errors are uncorrelated and $HA$: Errors are correlated.
+
+* The P value is 0.48 which is less than 0.05, hence we have enough evidence to reject the $H0$, this indicates that the uncorrelated error assumption is violated.
+
+
+### 4 Test for Linearity
+
+One of the key assumptions of multiple linear regression is that there exists a linear relationship between each predictor variable and the response variable.If this assumption is violated, then the results of the regression model can be unreliable. We will check this assumption by creating a partial residual plot, which displays the residuals of one predictor variable against the response variable. 
+  
+
+```{r echo=TRUE}
+crPlots(modelsqrt)
+```
+* The blue line shows the expected residuals if the relationship between the predictor and response variable was linear. The pink line shows the actual residuals.If the two lines are significantly different, then this is evidence of a nonlinear relationship.The predictor variables X1,X2 and X5 are fairly non-linear.
+
+
+
+
+* Now we will continue looking for the best fit model and we will use backward elimination using AIC values The backward elimination method starts with a full model that includes all independent variables, and then intaractively removes the least significant variable from the model until the AIC value is minimized. At each step, the AIC value is calculated for the current model, and the variable with the highest p-value (i.e., the least significant variable) is removed from the model. This process is repeated until the AIC value is minimized, indicating the best model fit.
+      
+
+## Step-Wise Regression Transformation
+
+```{r echo=TRUE}
+step(model,data=FLED,direction ="backward")
+```
+      
+* Using the backward elimination method we can see that the best fit model is with the independent variables X1,X2,X4,X5 and X6. It has the lowest AIC value of 596.29. 
+    We will now fit this model.
+
+
+### Model1 with Backward Elimination    
+```{r echo=TRUE}
+model1<-lm(Y~X1+X2+X4+X5+X6,FLED)
+summary(model1)
+```
+
+Model Equation: $\hat {Y}= (4.048e+01) + (2.016e-01) \hspace{0.1 cm} X1 + (7.176e-02) \hspace{0.1 cm} X2 + (5.617e-02) \hspace{0.1 cm} X4 + (6.069e-05) \hspace{0.1 cm} X5 + (1.665e+00) \hspace{0.1 cm} X6$  
+
+    
+* We can see that there is not much improvement in the R-Squared value, in the  original model 66.59% of capability was explained by the model and in this model 66.58% of the variability in data is explained.
+
+We will check whether this new model has violated any assumptions
+
+### Residual Analysis    
+```{r}
+par(mfrow=c(2,2))
+plot(model1)
+```
+### *1 Non-constant error variance test*
+
+```{r echo=TRUE}
+plot(model1$fitted.values, model1$residuals)
+```
+    
+```{r echo=TRUE}
+ncvTest(model1)
+```
+
+* Here,H0: Errors have constant variance and HA: Errors have a non-constant variance. 
+
+* The p-value is greater than 0.05 hence we do not reject the null hypothesis. This indicates that the constant error variance assumption is not violated.
+
+### *2 Test for Normally Distributed Errors*
+
+```{r echo=TRUE}
+shapiro.test(model1$residuals)
+```
+
+* Here, $H0$: Errors are normally distributed and $HA$: Errors are not normally distributed
+* The p-value of 0.002323 is less than $0.05$ hence we reject the null hypothesis. This indicates that the normality error assumption is
+violated.
+
+### *3 Test for Autocorrelated Errors*
+
+```{r echo=TRUE}
+acf(model1$residuals)
+```
+
+
+```{r echo=TRUE}
+durbinWatsonTest(model1)
+```
+
+* Here $H0$: Errors are uncorrelated and $HA$: Errors are correlated
+
+* The p-value is greater than $0.05$ hence we do not reject the null hypothesis. This indicates that the uncorrelated error assumption is not violated
+
+### *4 Test for Linearity* 
+
+   One of the key assumptions of multiple linear regression is that there exists a linear relationship between each predictor variable and the response variable. If this assumption is violated, then the results of the regression model can be unreliable. We will check this assumption by creating a partial residual plot, which displays the residuals of one predictor variable against the response variable. 
+   
+```{r echo=TRUE}
+crPlots(model1)
+```
+
+* The blue line shows the expected residuals if the relationship between the predictor and response variable was linear. The pink line shows the actual residuals.If the two lines are significantly different, then this is evidence of a nonlinear relationship.The predictor variables X1,X2 and X5 are fairly non-linear.
+
+### *Forward Selection using AIC values*
+
+This is a null model that does not contain any variable only the intercept.
+
+```{r echo=TRUE}
+null=lm(Y~1,data = FLED)
+```
+
+ *The forward selection method starts with a model that includes only a constant term, and then iteractively adds the most significant variable to the model at each step until the AIC value is minimized. At each step, the AIC value is calculated for the current model, and the variable with the highest reduction in AIC value (i.e., the most significant variable) is added to the model. This process is repeated until the AIC value is minimized, indicating the best model fit.
+
+```{r echo=TRUE}
+step(null,direction = "forward",data=FLED,scope=list(lower=null, upper=model))
+```
+
+* Using forward selection with AIC we can see that the best model is with the independent variables X1, X2,X3,X4 and X6.
+
+### Model2 with Forward Selection
+
+```{r echo=TRUE}
+model2<-lm(Y~X1+X2+X3+X4+X6,FLED)
+summary(model2)
+```
+
+Model Equation: $\hat {Y}= (4.010e+01) + (1.795e-01) \hspace{0.1 cm} X1 + (7.396e-02) \hspace{0.1 cm} X2 + (3.838e-04) \hspace{0.1 cm} X3 + (5.887e-02) \hspace{0.1 cm} X4 + (1.690e+00) \hspace{0.1 cm} X6$  
+
+* Using forward selection with AIC we can see that the best model is with the independent variables X1, X2,X3,X4 and X6.
+
+* From the summary it is evident that 66.43% of the variability in the data is explained by the model and the adjusted R-Squared value is 0.6549. 
+
+We will now check if any assumptions have been violated or not.
+
+
+### Residual Analysis
+
+```{r echo=TRUE}
+par(mfrow=c(2,2))
+plot(model2)
+```
+
+### *1 Non-constant error variance test*
+
+```{r echo=TRUE}
+plot(model2$fitted.values, model2$residuals)
+```
+
+```{r echo=TRUE}
+ncvTest(model2)
+```
+ 
+* Here, $H0$ Errors have constant variance and $HA$: Errors have a non-constant variance
+* The p-value of 0.09895 is greater than 0.05 hence we do not reject the null hypothesis. This indicates that the constant error variance assumption is not violated.
+
+### *2 Test for Normally Distributed Errors*
+
+```{r echo=TRUE}
+shapiro.test(model2$residuals)
+```
+
+* Here, $H0$: Errors are normally distributed $HA$: Errors are not normally distributed.
+
+* The p-value of 0.001316 is less than 0.05 hence we have enough evidence to reject the null hypothesis. This indicates that the normality error assumption is violated.
+
+
+### *3 Test for Autocorrelated Errors*
+
+```{r echo=TRUE}
+acf(model2$residuals)
+```
+
+
+
+```{r echo=TRUE}
+durbinWatsonTest(model2)
+```
+
+* Here, $H0$ = Errors are uncorrelated and $HA$ = Errors are correlated. 
+
+* The p-value is greater than 0.05 hence we do not reject the $H0$. This indicates that the uncorrelated error assumption is not violated.
+
+### *4 Test for Linearity*
+
+  One of the key assumptions of multiple linear regression is that there exists a linear relationship between each predictor variable and the response variable. If this assumption is violated, then the results of the regression model can be unreliable. We will check this assumption by creating a partial residual plot, which displays the residuals of one predictor variable against the response variable. 
+  
+```{r echo=TRUE}
+crPlots(model2)
+```
+* The blue line shows the expected residuals if the relationship between the predictor and response variable was linear. The pink line shows the actual residuals.If the two lines are significantly different, then this is evidence of a nonlinear relationship.
+
+* The predictor variables X1,X2 and X3 are fairly non-linear.
+
+
+
+
+
+### *Stepwise regression using AIC values*
+
+```{r echo=TRUE}
+step(null, scope = list(upper=model), data=FLED, direction="both")
+
+```
+
+
+* Stepwise regression gives us the same result as forward selection using AIC values.
+
+* Based on all models considered model, modellog, model1 and model2. Model1 is the best.
+
+## *Conclusion*
+
+We have successfully analyzed the data provided by checking the multicollinearity among the six variables which we have considered. The plot for the data is plotted and we did the residual analysis for the same. To the model, we have performed log transformation, square root transformation and stepwise regression with backward elimination and forward selection. Whilst the transformation, we have performed the residual analysis as well. Further, we did the test for Error variance, Normally Distributed Errors, Error Autocorrelation and Test for Linearity.
+
+Based on above transformed models and their outputs, we have considered **model1** as the best fitted model on the basis of higher R-squared value and level of significance among all the predictor variables with respect to the dependent variable.
+
+
+## Reference 
+
+- https://rmit.instructure.com/courses/112586/pages/week-8-learning-materials-slash-activities-2?module_item_id=4826531
+
+- https://rmit.instructure.com/courses/112586/pages/week-9-learning-materials-slash-activities-2?module_item_id=4826534
+
+- https://rmit.instructure.com/courses/112586/pages/week-10-learning-materials-slash-activities?module_item_id=4826537
