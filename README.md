@@ -1,1 +1,5 @@
 # Life-Expectancy-Regression-Analysis
+
+Life expectancy is one of the most used measures of overall health of a population. It is expressed as either the number of years of a newborn baby is expected to live, or the expected years of life remaining for a person at a given age and is estimated from the death rates in a population. Life expectancy is a measure that is often used to gauge the overall health of a community. Life expectancy at birth measures health status across all age groups. Shifts in life expectancy are often used to describe trends in mortality. It was found that the effect of immunization and human development index was not considered in the past. Hence, considering the data of life expectancy for the year 2014 for all the countries.
+
+This project will focus on various factors such as immunization, mortality, economic, social and other health related factors as well. These factors in corresponding to the countries observations will help us analyze the life expectancy rates globally. The predicting variables can be divided into several broad categories: Immunization related factors, Mortality factors, Economical factors, and social factors.
